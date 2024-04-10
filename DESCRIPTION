@@ -1,12 +1,30 @@
 Package: fomo
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+Type: Package
+Title: Mislabel Correction in Multi-Omic Datasets
+Version: 0.99.0
+Description: An R package to automatically detect and correct mislabeled samples 
+    in multi-omic datasets that have multiple samples per individual. Provides functions 
+    for solving, visualizing, and outputting sample mislabel information.
+Authors@R: c(
+    person("Deng", "Charles", email = "charlesfanghuideng@gmail.com", role = c("aut", "cre")),
+    person("Thompson", "Ryan", email = "ryan.thompson2@mssm.edu", role = c("aut"),
+        comment = c(ORCID = "0000-0002-0450-8181")))
+License: MIT + file LICENSE
 Encoding: UTF-8
+biocViews: QualityControl, GraphAndNetwork, 
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
+Imports: 
+    assertthat,
+    utils,
+    dplyr,
+    igraph,
+    methods,
+    Matrix,
+    visNetwork,
+    tidyr,
+    stringr,
+    withr,
+    gtools,
+    reshape2,
+    graphics

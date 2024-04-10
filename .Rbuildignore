@@ -1,2 +1,4 @@
 ^fomo\.Rproj$
 ^\.Rproj\.user$
+fomo_package_creation.Rmd
+^LICENSE\.md$
