@@ -6,6 +6,7 @@
 \usage{
 MislabelSolver(
   sample_metadata,
+  genotype_matrix = NULL,
   swap_cats = NULL,
   anchor_samples = character(0)
 )

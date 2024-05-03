@@ -9,7 +9,7 @@ solveMajoritySearch(object, unambiguous_only = FALSE)
 \arguments{
 \item{object}{A MislabelSolver object}
 
-\item{unambiguous_only}{(Optional) If true, only correct sample mislabels if they are unambiguous.}
+\item{unambiguous_only}{(Default = FALSE) If true, only correct sample mislabels if they are unambiguous.}
 }
 \value{
 A MislabelSolver object

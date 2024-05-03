@@ -34,7 +34,6 @@ setMethod("plot", signature(x = "MislabelSolver"),
                   ghost_data <- x@.solve_state$relabel_data %>% 
                       dplyr::filter(Is_Ghost)
               }
-              anchor_samples <- x@anchor_samples
               if (!is.null(query_val)) {
                   query_by <- as.character(query_by)
                   query_by <- match.arg(query_by)
@@ -68,10 +67,46 @@ setMethod("plot", signature(x = "MislabelSolver"),
               }
               graph <- .generate_graph(relabel_data, graph_type = "combined", ghost_data, 
                                        populate_plotting_attributes=TRUE, collapse_samples=collapse_samples)
-              withr::with_seed(1, {
+              withr::with_seed(2, {
                   l_mds <- igraph::layout_with_mds(graph)
                   l_drl <- igraph::layout_with_drl(graph, use.seed=TRUE, seed=l_mds)
                   visNetwork::visIgraph(graph, layout = "layout_with_graphopt", start=l_drl) 
               })
           }
 )
+
+#' Plot corrections for \code{MislabelSolver} objects
+#'
+#' Leverages \code{visNetwork} to generate an interactive plot of sample relabels
+#'
+#' @param object An object of class \code{MislabelSolver}
+#'
+#' @importFrom graphics plot
+#' @import igraph
+#' @import dplyr
+#' @import visNetwork
+#' @import withr
+#'
+#' @export
+#'
+plotCorrections <- function(object, init_component_id=NULL) {
+    relabels_df <- object@.solve_state$relabel_data %>% 
+        filter(Init_Sample_ID != Sample_ID)
+
+    if (!is.null(init_component_id)) {
+        relabels_df <- relabels_df %>% 
+            filter(Init_Component_ID == init_component_id)
+    }
+    
+    edges_df <- relabels_df %>% select(Init_Sample_ID, Sample_ID)
+    corrections_graph <- graph_from_data_frame(edges_df , directed=TRUE)
+    
+    
+    all_samples <- unique(c(relabels_df$Init_Sample_ID, relabels_df$Sample_ID))
+    ghost_samples <- relabels_df$
+    
+    relabels_df <- relabels_df %>% 
+        select(Init_Sample_ID, Sample_ID, Is_Ghost, SwapCat_ID, SwapCat_Shape, vertex_size_scalar, is)
+    
+    
+}

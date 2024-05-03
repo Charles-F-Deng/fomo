@@ -20,11 +20,13 @@
 setClass("MislabelSolver",
          representation(
              sample_metadata = "data.frame",
+             genotype_matrix = "matrix",
              swap_cats = "data.frame",
              anchor_samples = "character",
              .solve_state = "list"
          ),
          prototype(
+             genotype_matrix = NULL,
              swap_cats = NULL,
              anchor_samples = character(0)
          )
@@ -43,14 +45,21 @@ setClass("MislabelSolver",
 #' 
 #' @return A MislabelSolver object
 #'
-#' @import methods
+#' @import methods igraph
 #' 
 #' @export
 #' 
-MislabelSolver <- function(sample_metadata, swap_cats=NULL, anchor_samples=character(0)) {
+MislabelSolver <- function(sample_metadata, genotype_matrix=NULL, swap_cats=NULL, anchor_samples=character(0)) {
     ## Convert and validate inputs
     sample_metadata <- as.data.frame(lapply(sample_metadata, as.character))
-    .validate_sample_metadata(sample_metadata)
+    .validate_sample_metadata(sample_metadata, has_genotype_matrix=!is.null(genotype_matrix))
+    
+    if (!is.null(genotype_matrix)) {
+        .validate_genotype_matrix(genotype_matrix, sample_metadata)
+        genotype_df <- .genotype_matrix_to_genotype_df(genotype_matrix)
+        sample_metadata <- sample_metadata %>% 
+            left_join(genotype_df, by="Sample_ID")
+    }
     
     if (is.null(swap_cats)) {
         swap_cats <- sample_metadata[, "Sample_ID", drop=FALSE]
@@ -62,13 +71,13 @@ MislabelSolver <- function(sample_metadata, swap_cats=NULL, anchor_samples=chara
     anchor_samples <- unique(as.character(anchor_samples))
     .validate_anchor_samples(sample_metadata, anchor_samples)
     
-    return(methods::new("MislabelSolver", sample_metadata, swap_cats, anchor_samples))
+    return(methods::new("MislabelSolver", sample_metadata, genotype_matrix, swap_cats, anchor_samples))
 }
 
 #' @import dplyr
 #' 
 setMethod("initialize", "MislabelSolver",
-          function(.Object, sample_metadata, swap_cats=NULL, anchor_samples=character(0)) {
+          function(.Object, sample_metadata, genotype_matrix=NULL, swap_cats=NULL, anchor_samples=character(0)) {
               # Hack to get around the NOTE "no visible binding for global variable"
               Genotype_Group_ID <- Subject_ID <- Sample_ID <- Init_Sample_ID <- NULL
               
@@ -76,10 +85,12 @@ setMethod("initialize", "MislabelSolver",
               all_swap_cat_ids <- names(sort(table(swap_cats$SwapCat_ID), decreasing=TRUE))
               swap_cat_shapes <- data.frame(
                   SwapCat_ID = all_swap_cat_ids,
-                  SwapCat_Shape = ifelse(length(all_swap_cat_ids) <= length(VISNETWORK_SWAPCAT_SHAPES),
-                                         VISNETWORK_SWAPCAT_SHAPES[seq_len(length(all_swap_cat_ids))], "dot"),
+                  SwapCat_Shape = "dot",
                   vertex_size_scalar = 1
               )
+              if (length(all_swap_cat_ids) <= length(VISNETWORK_SWAPCAT_SHAPES)) {
+                  swap_cat_shapes$SwapCat_Shape <- VISNETWORK_SWAPCAT_SHAPES[seq_along(all_swap_cat_ids)]
+              }
               swap_cats <- swap_cats %>% 
                   dplyr::left_join(swap_cat_shapes, by="SwapCat_ID")
               
@@ -109,6 +120,7 @@ setMethod("initialize", "MislabelSolver",
               )
               
               .Object@sample_metadata <- sample_metadata
+              .Object@genotype_matrix <- genotype_matrix
               .Object@swap_cats <- swap_cats
               .Object@anchor_samples <- anchor_samples
               .Object@.solve_state <- solve_state

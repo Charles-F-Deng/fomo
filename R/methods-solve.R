@@ -64,7 +64,7 @@ solveMajoritySearch <- function(object, unambiguous_only=FALSE) {
     
     ## 3. Relabel samples and update solve state
     object <- .relabel_samples(object, relabels)
-    print(paste(nrow(relabels), "samples relabeled"))
+    # print(paste(nrow(relabels), "samples relabeled"))
     return(object)
 }
 
@@ -275,7 +275,7 @@ solveComprehensiveSearch <- function(object, max_genotypes=8) {
     
     ## Relabel samples and update solve state
     object <- .relabel_samples(object, relabels) 
-    print(paste(nrow(relabels), "samples relabeled"))
+    # print(paste(nrow(relabels), "samples relabeled"))
     return(object)
 }
 
@@ -301,9 +301,11 @@ solveLocalSearch <- function(object, n_iter=1, include_ghost=FALSE, filter_conco
     set.seed(1)
     print("Starting local search")
     calc_scaled_entropy <- function(x) {
-        n <- sum(x)
-        return(n*sum(log(x/n), na.rm=TRUE))
-        #return(sum(x*log(x/sum(x)), na.rm=TRUE))
+        #n <- sum(x)
+        #return(-n*sum(x/n *log(x/n), na.rm=TRUE))
+        # n <- sum(x)
+        # return(n*sum(log(x/n), na.rm=TRUE))
+        return(sum(x*log(x/sum(x)), na.rm=TRUE))
     }
     
     for (i in 1:n_iter) {
@@ -387,7 +389,7 @@ solveLocalSearch <- function(object, n_iter=1, include_ghost=FALSE, filter_conco
         relabels <- relabels[!is.na(relabels[, 1]) & !is.na(relabels[, 2]), ]
         relabels <- rbind(relabels, data.frame(relabel_from=relabels$relabel_to, relabel_to=relabels$relabel_from))
         object <- .relabel_samples(object, relabels)
-        print(paste(nrow(relabels), "samples relabeled"))
+        # print(paste(nrow(relabels), "samples relabeled"))
     }
     
     return(object)
@@ -432,4 +434,5 @@ solveEnsemble <- function(object) {
             }
         }
     }
+    return(object)
 }

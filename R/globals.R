@@ -11,5 +11,8 @@ global_vars <- c("Sample_ID", "Subject_ID", "Genotype_Group_ID", "Component_ID",
                  "Curr_Subject_ID_Genotyped", "Genotype_Group_A", "Genotype_Group_B",
                  "Inferred_Correctly_Labeled", "Invalid_Swap", "Putative_Subject_A",
                  "Putative_Subject_B", "Putative_Subject_ID", "Row", "Sample_A", "Sample_B",
-                 "Subject_A", "Subject_B", "SwapCat_A", "SwapCat_B", "X", "delta")
+                 "Subject_A", "Subject_B", "SwapCat_A", "SwapCat_B", "X", "delta",
+                 "Is_Anchor", "SwapCat_Shape", "sample1", "sample2", "sample_a", "sample_b",
+                 "vertex_size_scalar", "Deleted_relabel_from", "relabel_from", "Sample_ID.y",
+                 "Subject_ID.x", "Subject_ID.y", "Init_Sample_ID", "relabel_from")
 utils::globalVariables(global_vars)

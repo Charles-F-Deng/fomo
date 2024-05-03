@@ -1,12 +1,23 @@
 #' @importFrom assertthat assert_that
 #' 
-.validate_sample_metadata <- function(sample_metadata) {
-    required_columns <- c("Sample_ID", "Subject_ID", "Genotype_Group_ID")
+.validate_sample_metadata <- function(sample_metadata, has_genotype_matrix=FALSE) {
+    print(has_genotype_matrix)
+    required_columns <- c("Sample_ID", "Subject_ID")
+    if (!has_genotype_matrix) {
+        required_columns <- c(required_columns, "Genotype_Group_ID")
+    }
     missing_columns <- setdiff(required_columns, colnames(sample_metadata))
     assertthat::assert_that(
         length(missing_columns) == 0,
         msg = paste0("'sample_metadata' is missing required column(s) ", paste(missing_columns, collapse=", "))
     )
+    
+    if (has_genotype_matrix) {
+        assertthat::assert_that(
+            !("Genotype_Group_ID" %in% colnames(sample_metadata)),
+            msg = paste0("'sample_metadata' should not contain a Genotype_Group_ID column if 'genotype_matrix' is provided")
+        )
+    }
     
     duplicated_samples <- sample_metadata$Sample_ID[duplicated(sample_metadata$Sample_ID)]
     assertthat::assert_that(
@@ -22,6 +33,53 @@
     assertthat::assert_that(
         all(!is.na(sample_metadata$Subject_ID)),
         msg = "'sample_metadata' missing value(s) in 'Subject_ID' column"
+    )
+}
+
+#' @importFrom assertthat assert_that
+#'
+.validate_genotype_matrix <- function(genotype_matrix, sample_metadata) {
+    rows_missing_in_cols <- setdiff(rownames(genotype_matrix), colnames(genotype_matrix))
+    assertthat::assert_that(
+        length(rows_missing_in_cols) == 0,
+        msg = paste0("'genotype_matrix' contains rowname(s) missing in colname(s) ", paste(rows_missing_in_cols, collapse=", "))
+    )
+    
+    cols_missing_in_rows <- setdiff(colnames(genotype_matrix), rownames(genotype_matrix))
+    assertthat::assert_that(
+        length(cols_missing_in_rows) == 0,
+        msg = paste0("'genotype_matrix' contains colname(s) missing in rowname(s) ", paste(cols_missing_in_rows, collapse=", "))
+    )
+    
+    assertthat::assert_that(
+        nrow(genotype_matrix) == ncol(genotype_matrix),
+        msg = paste0("'genotype_matrix' is not square, nrow=", nrow(genotype_matrix), " and ncol=", ncol(genotype_matrix))
+    )
+    
+    assertthat::assert_that(
+        isSymmetric(genotype_matrix),
+        msg = paste0("'genotype_matrix' must be symmetric")
+    )
+    
+    assertthat::assert_that(
+        sum(is.na(genotype_matrix)) == 0,
+        msg = paste0("'genotype_matrix' contains NA value(s). If they represent samples with different genotypes, fill explicitly with zero or FALSE.")
+    )
+    
+    assertthat::assert_that(
+        all(is.numeric(genotype_matrix)) | all(is.logical(genotype_matrix)),
+        msg = paste0("Values in 'genotype_matrix' should all be logical or numeric")
+    )
+    
+    assertthat::assert_that(
+        sum(abs(diag(genotype_matrix))) == 0,
+        msg = paste0("'genotype_matrix' must have all zero or FALSE in the diagonal")
+    )
+    
+    missing_samples <- setdiff(rownames(genotype_matrix), sample_metadata$Sample_ID)
+    assertthat::assert_that(
+        length(missing_samples) == 0,
+        msg = paste0("Row and column names of 'genotype_matrix' must come from Sample_ID(s) found in 'sample_metadata'. Check row/colname(s) ", paste(missing_samples, collapse=", "))
     )
 }
 
@@ -59,9 +117,6 @@
 #' @import dplyr
 #' 
 .validate_anchor_samples <- function(sample_metadata, anchor_samples) {
-    # Hack to get around the NOTE "no visible binding for global variable"
-    Genotype_Group_ID <- Subject_ID <- Sample_ID <- n_Subject_ID <- n_Genotype_Group_ID <- NULL
-    
     extra_samples <- setdiff(anchor_samples, sample_metadata$Sample_ID)
     assertthat::assert_that(
         length(extra_samples) == 0,
