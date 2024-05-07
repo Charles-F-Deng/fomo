@@ -123,7 +123,7 @@ solveComprehensiveSearch <- function(object, max_genotypes=8) {
         free_subjects <- setdiff(cc_subjects, locked_subjects)
         
         ## Pass out of components if they have too many genotypes
-        if (length(free_genotypes) > max_genotypes) {
+        if (length(free_genotypes) > max_genotypes | length(free_subjects) > max_genotypes) {
             next
         }
         
