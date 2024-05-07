@@ -273,6 +273,7 @@ solveComprehensiveSearch <- function(object, max_genotypes=8) {
     relabels <- .find_relabel_cycles_from_putative_subjects(unsolved_relabel_data, putative_subjects, 
                                                             unsolved_ghost_data, allow_unknowns=TRUE)
     
+    
     ## Relabel samples and update solve state
     object <- .relabel_samples(object, relabels) 
     # print(paste(nrow(relabels), "samples relabeled"))

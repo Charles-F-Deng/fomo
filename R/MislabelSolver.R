@@ -110,12 +110,16 @@ setMethod("initialize", "MislabelSolver",
                   dplyr::filter(is.na(Genotype_Group_ID))
               putative_subjects <- data.frame(Genotype_Group_ID = character(0),
                                               Subject_ID = character(0))
+              lnf_counts <- data.frame(Subject_ID = character(0),
+                                       SwapCatID = character(0),
+                                       count = integer(0))
               ambiguous_subjects <- list()
               solve_state <- list(
                   relabel_data = relabel_data,
                   unsolved_relabel_data = unsolved_relabel_data,
                   unsolved_ghost_data = unsolved_ghost_data,
                   putative_subjects = putative_subjects,
+                  lnf_counts,
                   ambiguous_subjects = ambiguous_subjects
               )
               

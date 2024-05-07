@@ -368,6 +368,7 @@
 
 #' @import dplyr
 #' @import igraph
+#' @import ids
 #'
 .find_relabel_cycles_from_putative_subjects <- function(unsolved_relabel_data, 
                                                         putative_subjects,
@@ -454,7 +455,7 @@
         n_unknown_labels <- 0
         ## If there still aren't enough eligible labels, resort to plugging the gap with unknowns
         if (allow_unknowns && n_label_deficit > 0) {
-            unknown_labels <- paste0(LABEL_NOT_FOUND, "#", subject_id, "#", swap_cat_id, "#", n_label_deficit)
+            unknown_labels <- paste0(LABEL_NOT_FOUND, "#", subject_id, "#", swap_cat_id, "#", generate_IDs(n_label_deficit))
             n_unknown_labels <- length(unknown_labels)
         }
         
@@ -625,4 +626,21 @@
         dplyr::select(Sample_A, Sample_B)
     
     return(unique_pairs)
+}
+
+# Generate a vector of unique IDs
+generate_IDs <- function(n) {
+    IDs <- numeric(n)
+    for (i in 1:n) {
+        timestamp <- as.integer(as.numeric(Sys.time()))
+        
+        # Generate a random number
+        set.seed(timestamp + i)  # Set seed for reproducibility based on timestamp and loop index
+        random_number <- sample(100000:999999, 1)  # Generate a random number between 10000 and 99999
+        # Concatenate timestamp and random number to create ID
+        ID <- random_number
+        # Store ID in the vector
+        IDs[i] <- ID
+    }
+    return(IDs)
 }

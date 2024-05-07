@@ -79,7 +79,7 @@ writeOutput <- function(object, path=NULL) {
         select(Genotype_Group_ID, Inferred_Subject_ID, Init_Fraction_Match, everything())
     
     genotype_group_summary$Genotype_Connectedness <- NA
-    genotype_group_summary$Contamination_Flag <- FALSE
+    genotype_group_summary$Genotype_Contamination_Flag <- FALSE
     for (genotype_group_id in genotype_group_summary$Genotype_Group_ID) {
         genotype_group_init_samples <- sample_summary %>% 
             filter(Genotype_Group_ID == genotype_group_id) %>% 
@@ -89,7 +89,7 @@ writeOutput <- function(object, path=NULL) {
         total_edges <- length(genotype_group_matrix[upper.tri(genotype_group_matrix)])
         genotype_group_summary[genotype_group_summary$Genotype_Group_ID == genotype_group_id, "Genotype_Connectedness"] <- 
             paste0(existing_edges, " out of ", total_edges, " edges")
-        genotype_group_summary[genotype_group_summary$Genotype_Group_ID == genotype_group_id, "Contamination_Flag"] <- TRUE
+        genotype_group_summary[genotype_group_summary$Genotype_Group_ID == genotype_group_id, "Genotype_Contamination_Flag"] <- TRUE
     }
     
     component_summary <- sample_summary %>% 
