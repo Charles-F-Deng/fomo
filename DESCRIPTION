@@ -27,4 +27,5 @@ Imports:
     withr,
     gtools,
     reshape2,
-    graphics
+    graphics,
+    uuid
