@@ -636,7 +636,7 @@ generate_IDs <- function(n) {
         
         # Generate a random number
         set.seed(timestamp + i)  # Set seed for reproducibility based on timestamp and loop index
-        random_number <- sample(100000:999999, 1)  # Generate a random number between 10000 and 99999
+        random_number <- sample(1000000:9999999, 1)  # Generate a random number between 10000 and 99999
         # Concatenate timestamp and random number to create ID
         ID <- random_number
         # Store ID in the vector
