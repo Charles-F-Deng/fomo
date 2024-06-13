@@ -81,7 +81,6 @@ setMethod("plot", signature(x = "MislabelSolver"),
 #'
 #' @param object An object of class \code{MislabelSolver}
 #'
-#' @importFrom graphics plot
 #' @import igraph
 #' @import dplyr
 #' @import visNetwork
@@ -89,24 +88,22 @@ setMethod("plot", signature(x = "MislabelSolver"),
 #'
 #' @export
 #'
-plotCorrections <- function(object, init_component_id=NULL) {
-    relabels_df <- object@.solve_state$relabel_data %>% 
-        filter(Init_Sample_ID != Sample_ID)
-
-    if (!is.null(init_component_id)) {
-        relabels_df <- relabels_df %>% 
-            filter(Init_Component_ID == init_component_id)
+plotCorrections <- function(object, 
+                            query_by=c("Init_Component_ID", "Component_ID", "Subject_ID", "Genotype_Group_ID", "Sample_ID"),
+                            query_val=NULL) {
+    relabel_data <- object@.solve_state$relabel_data
+    corrections_graph <- .generate_corrections_graph(relabel_data)
+    
+    ## If a query has been passed in, plot only the applicable components in the corrections graph
+    
+    
+    if (!is.null(query_val)) {
+        query_by <- as.character(query_by)
+        query_by <- match.arg(query_by)
+        if (query_by %in% c("Init_Component_ID", "Component_ID")) {
+            relabel_data <- relabel_data %>% 
+                dplyr::filter(!!sym(query_by) == query_val)
+        }
+        init_query_val
     }
-    
-    edges_df <- relabels_df %>% select(Init_Sample_ID, Sample_ID)
-    corrections_graph <- graph_from_data_frame(edges_df , directed=TRUE)
-    
-    
-    all_samples <- unique(c(relabels_df$Init_Sample_ID, relabels_df$Sample_ID))
-    ghost_samples <- relabels_df$
-    
-    relabels_df <- relabels_df %>% 
-        select(Init_Sample_ID, Sample_ID, Is_Ghost, SwapCat_ID, SwapCat_Shape, vertex_size_scalar, is)
-    
-    
 }

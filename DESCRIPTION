@@ -28,4 +28,5 @@ Imports:
     gtools,
     reshape2,
     graphics,
-    uuid
+    uuid,
+    openxlsx

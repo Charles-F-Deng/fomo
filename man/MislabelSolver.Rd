@@ -13,7 +13,12 @@ MislabelSolver(
 }
 \arguments{
 \item{sample_metadata}{A data.frame containing sample metadata, with one row per sample.
-Must include columns for Sample_ID, Subject_ID, and Genotype_Group_ID.}
+Must include columns for Sample_ID, Subject_ID. If 'genotype_matrix'
+is not provided, most also include a Genotype_Group_ID column.}
+
+\item{genotype_matrix}{(Optional) A numeric or logical matrix specifiying whether a pair of
+samples came from the same person. Row and column names must come from
+Sample_ID column in 'sample_metadata'. Must be square, must be symmetric}
 
 \item{swap_cats}{(Optional) A data.frame with one row per sample specifying the SwapCat_ID,
 where by experimental design only samples with the same SwapCat_ID may be

@@ -14,5 +14,10 @@ global_vars <- c("Sample_ID", "Subject_ID", "Genotype_Group_ID", "Component_ID",
                  "Subject_A", "Subject_B", "SwapCat_A", "SwapCat_B", "X", "delta",
                  "Is_Anchor", "SwapCat_Shape", "sample1", "sample2", "sample_a", "sample_b",
                  "vertex_size_scalar", "Deleted_relabel_from", "relabel_from", "Sample_ID.y",
-                 "Subject_ID.x", "Subject_ID.y", "Init_Sample_ID", "relabel_from")
+                 "Subject_ID.x", "Subject_ID.y", "Init_Sample_ID", "relabel_from",
+                 "Final_Sample_ID", "Final_Subject_ID", "Ghost", "Inferred_Subject_ID",
+                 "Init_Fraction_Match", "Init_Subject_ID", "Solved", "Status", "Subject_ID_putative",
+                 "n_Genotype_Group", "n_Genotype_Group_ID", "n_Genotype_Groups",
+                 "n_Sample_ID", "n_Samples_ignored", "n_Samples_total", "n_Samples_validated",
+                 "n_Subject_ID", "n_Subjects", "n_agree", "new_Component_ID")
 utils::globalVariables(global_vars)

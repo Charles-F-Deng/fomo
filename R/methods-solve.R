@@ -435,5 +435,9 @@ solveEnsemble <- function(object) {
             }
         }
     }
+    
+    ## After the solve, check if cycles can be broken down
+    
+    
     return(object)
 }

@@ -1,9 +1,19 @@
+## TODOs
+## If given a genotype_matrix, plot the graph derived directly from the matrix rather than the factor
+## Make the colors used in plotting global variables
+## In comprehensive search, handle the case where there are more genotype groups than subjects
+## Collapse large cycles
+
 #' The MislabelSolver class
 #' 
 #' The MislabelSolver class stores the sample metadata required form mislabel detection and correction.
 #' 
 #' @slot sample_metadata A data.frame containing sample metadata, with one row per sample
-#'                       Must include columns for Sample_ID, Subject_ID, and Genotype_Group_ID.
+#'                       Must include columns for Sample_ID, Subject_ID. If 'genotype_matrix'
+#'                       is not provided, most also include a Genotype_Group_ID column.
+#' @slot genotype_matrix (Optional) A numeric or logical matrix specifiying whether a pair of
+#'                       samples came from the same person. Row and column names must come from
+#'                       Sample_ID column in 'sample_metadata'. Must be square, must be symmetric 
 #' @slot swap_cats (Optional) A data.frame with one row per sample specifying the SwapCat_ID,
 #'                 where by experimental design only samples with the same SwapCat_ID may be 
 #'                 swapped for one another. For example, assay type or batch ID information 
@@ -20,7 +30,7 @@
 setClass("MislabelSolver",
          representation(
              sample_metadata = "data.frame",
-             genotype_matrix = "matrix",
+             genotype_matrix = "ANY",
              swap_cats = "data.frame",
              anchor_samples = "character",
              .solve_state = "list"
@@ -36,11 +46,15 @@ setClass("MislabelSolver",
 #' Constructor for the MislabelSolver class
 #' 
 #' @param sample_metadata A data.frame containing sample metadata, with one row per sample. 
-#'                       Must include columns for Sample_ID, Subject_ID, and Genotype_Group_ID.
+#'                        Must include columns for Sample_ID, Subject_ID. If 'genotype_matrix'
+#'                        is not provided, most also include a Genotype_Group_ID column.
+#' @param genotype_matrix (Optional) A numeric or logical matrix specifiying whether a pair of
+#'                       samples came from the same person. Row and column names must come from
+#'                       Sample_ID column in 'sample_metadata'. Must be square, must be symmetric 
 #' @param swap_cats (Optional) A data.frame with one row per sample specifying the SwapCat_ID,
-#'                 where by experimental design only samples with the same SwapCat_ID may be 
-#'                 swapped for one another. For example, assay type or batch ID information 
-#'                 can be used to categorize Sample_ID(s) into SwapCat_ID(s)
+#'                  where by experimental design only samples with the same SwapCat_ID may be 
+#'                  swapped for one another. For example, assay type or batch ID information 
+#'                  can be used to categorize Sample_ID(s) into SwapCat_ID(s)
 #' @param anchor_samples (Optional) A character vector of Sample_ID(s) where the label is known to be correct
 #' 
 #' @return A MislabelSolver object
