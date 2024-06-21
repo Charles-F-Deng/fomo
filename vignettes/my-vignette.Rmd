@@ -1,0 +1,214 @@
+---
+title: "FOMO-Vignette"
+author: "Charles Deng"
+package: fomo
+output: BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{FOMO-Vignette"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(fomo)
+```
+
+# Introduction to FOMO
+
+FOMO is designed to solve mislabeled samples in multi-omic datasets with multiple
+samples per individual. The package takes as input sample metadata which includes 
+both the expected subject labels of all samples as well as the true grouping of 
+samples by genotype. The solver then finds a minimal number of sample relabels 
+which aligns subject label groups with genotype groups.
+
+The algorithm is designed to detect and relabel (solve) the following types of
+mislabeling events:
+1. A simple swap of 2 samples. For example, the sample labeled as sample 1 from 
+ individual A (A1) is actually sample 3 from individual B (B3), and the sample 
+ labeled B3 should actually be labeled A1.
+2. A cycle of N samples. For example, the sample labeled A1 is actually sample B3, 
+ B3 is actually C2, and C2 is actually A1.
+3. A duplication, when a sample has data generated for both its true sample as 
+ well as another planned sample.
+4. A deletion, when the true label for a sample doesn't exist in the metadata.
+
+# Creating a MislabelSolver object
+
+The main object in FOMO is the MislabelSolver. 
+
+### param 1 (required): sample_metadata
+
+The minimal input to create a MislabelSolver a sample_metadata table with three 
+columns: one for Sample_ID, one for Subject_ID which groups samples with the 
+same subject label, and one for Genotype_Group_ID which groups samples with the 
+same true genotype. This last column can be constructed using the pairwise 
+identity concordance tool of the researcher's choice.
+
+```{r}
+
+# The minimal inputs required to create a MislabelSolver object
+sample_metadata_input <- data.frame(
+    # generally comes from metadata records
+    Sample_ID = c("A_1", "A_2", "A_3", "B_1", "B_2", "B_3", "C_1", "C_2", "C_3"),
+    # generally comes from metadata records
+    Subject_ID = c("A", "A", "A", "B", "B", "B", "C", "C", "C"),
+    # generally comes from identity concordance tools
+    Genotype_Group_ID = c("Group2", "Group1", "Group1", "Group2", "Group2", "Group3", "Group3", "Group1", "Group3")
+)
+
+mislabel_solver <- MislabelSolver(sample_metadata_input)
+# Alternatively, the genotype group information can be provided as a square, 
+# symmetric boolean matrix, where 
+
+```
+
+### param 2 (optional): genotype_matrix
+
+Alternatively, the genotype group information can be provided as a square, 
+symmetric boolean genotype_matrix, with rownames and column names coming from 
+the Sample_ID column in the sample_metadata and a TRUE indicates that two samples 
+have the sample genotype (the diagonal however should all be FALSE). Whenever
+a genotype_matrix is provided, the sample_metadata should not include a 
+Genotype_Group_ID column.
+
+```{r}
+
+sample_metadata_input <- data.frame(
+    # generally comes from metadata records
+    Sample_ID = c("A_1", "A_2", "A_3", "B_1", "B_2", "B_3", "C_1", "C_2", "C_3"),
+    # generally comes from metadata records
+    Subject_ID = c("A", "A", "A", "B", "B", "B", "C", "C", "C")
+)
+
+# generally comes from identity concordance tools
+genotype_matrix_input <- matrix(FALSE, nrow=9, ncol=9)
+rownames(genotype_matrix_input) <- colnames(genotype_matrix_input) <- sample_metadata_input$Sample_ID
+genotype_matrix_input[c("A_2", "A_3", "C_2"), c("A_2", "A_3", "C_2")] <- TRUE
+genotype_matrix_input[c("A_1", "B_1", "B_2"), c("A_1", "B_1", "B_2")] <- TRUE
+genotype_matrix_input[c("B_3", "C_1", "C_3"), c("B_3", "C_1", "C_3")] <- TRUE
+diag(genotype_matrix_input) <- FALSE
+
+mislabel_solver <- MislabelSolver(sample_metadata=sample_metadata_input, 
+                                  genotype_matrix=genotype_matrix_input)
+
+```
+
+### param 3 (optional): swap_cats
+
+The researcher has the option to provide the argument swap_cats (for swappable
+categories), which is a data.frame with two columns: one for Sample_ID which 
+should match the equivalent column in sample_metadata, and another for SwapCat_ID 
+which groups the Sample_ID(s) which may be swapped for one another. For example,
+if dataset involves various assay modalities, the modality of each sample
+would be a swappable category provided that where sample swaps can only occur 
+between samples of the same modality. While this input is optional, the 
+additional information provided helps guide and constrain the solver.
+
+```{r}
+
+swap_cats_input <- data.frame(
+    # generally comes from metadata records
+    Sample_ID = c("A_1", "A_2", "A_3", "B_1", "B_2", "B_3", "C_1", "C_2", "C_3"),
+    # generally comes from metadata records
+    SwapCat_ID = c("WGS", "RNA", "RNA", "RNA", "RNA", "WGS", "RNA", "WGS", "RNA")
+)
+
+mislabel_solver <- MislabelSolver(sample_metadata=sample_metadata_input, 
+                                  genotype_matrix=genotype_matrix_input,
+                                  swap_cats=swap_cats_input)
+
+```
+
+### param 4 (optional): anchor_samples
+
+If the researcher knows that certain samples are labeled correctly, he/she
+and provide that information to the solver through anchor_samples. This is 
+represented as a character vector which should be a subset of Sample_ID(s)
+from the sample_metadata.
+
+```{r}
+
+anchor_samples_input <- c("C_3")
+
+mislabel_solver <- MislabelSolver(sample_metadata=sample_metadata_input, 
+                                  genotype_matrix=genotype_matrix_input,
+                                  swap_cats=swap_cats_input,
+                                  anchor_samples=anchor_samples_input)
+
+```
+
+### Ghost samples
+
+Not all samples have reliable genotype information, but because they may 
+still be involved in mislabeling events with other samples, they should still 
+be provided to the solver as "ghost" samples. To specify a ghost sample, set
+the corresponding entry in the Genotype_Group_ID column of sample_metadata to NA.
+Alternatively if a genotype_matrix was provided instead, remove the row/col 
+corresponding to ghost samples from the genotype_matrix.
+
+```{r}
+
+ghost_samples <- c("C_1")
+genotype_matrix_input <- genotype_matrix_input[!(rownames(genotype_matrix_input) %in% ghost_samples), 
+                                               !(colnames(genotype_matrix_input) %in% ghost_samples)]
+
+mislabel_solver <- MislabelSolver(sample_metadata=sample_metadata_input, 
+                                  genotype_matrix=genotype_matrix_input,
+                                  swap_cats=swap_cats_input,
+                                  anchor_samples=anchor_samples_input)
+
+```
+
+# MislabelSolver functionality
+
+### Plotting
+
+Given an initialized MislabelSolver object, the mislabel network is easily plotted.
+
+```{r}
+
+plot(mislabel_solver)
+
+```
+
+### Solving
+
+FOMO provides three solver functions to find likely relabels: solveMajority, 
+solveComprehensiveSearch, solveLocalSearch, and solveEnsemble. The recommended 
+solver function is solveEnsemble.
+
+```{r}
+
+mislabel_solver_solved <- solveEnsemble(mislabel_solver)
+## Setting unsolved=FALSE allows fully concordant cliques to be plotted as well
+plot(mislabel_solver_solved, unsolved=FALSE)
+
+```
+
+### Plotting corrections
+
+Corrections can be visualized as a directed graph, where a node X pointing to 
+node Y indicates that the sample currently labeled X should be relabeled Y
+
+```{r}
+
+plotCorrections(mislabel_solver_solved)
+
+```
+
+### Outputting relabels
+
+Finally, a summary of corrections can be outputted as an Excel spreadsheet
+
+```{r}
+
+writeOutput(mislabel_solver_solved, "~/outputted_corrections")
+
+```

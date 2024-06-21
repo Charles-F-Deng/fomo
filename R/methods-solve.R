@@ -236,8 +236,25 @@ solveComprehensiveSearch <- function(object, max_genotypes=8) {
             arrange(perm_score)
         
         ## To find a single solution, take top row
-        ## TODO: record any ties
         best_permutation <- perm_genotypes[permutation_stats$Permutation_ID[1], , drop=FALSE]
+        
+        ## Record any ties as subject ambiguities
+        if (nrow(permutation_stats) > 1) {
+            best_score <- permutation_stats$perm_score[1]
+            tied_permutation_stats <- permutation_stats %>% 
+                filter(perm_score == best_score)
+            if (nrow(tied_permutation_stats) > 1) {
+                tied_permutations <- perm_genotypes[tied_permutation_stats$Permutation_ID, , drop=FALSE]
+                for (curr_genotype_group in colnames(tied_permutations)) {
+                    if (!(curr_genotype_group %in% names(object@.solve_state$ambiguous_subjects))) {
+                        object@.solve_state$ambiguous_subjects[[curr_genotype_group]] <- tied_permutations[, curr_genotype_group]
+                    } else {
+                        object@.solve_state$ambiguous_subjects[[curr_genotype_group]] <- 
+                            unique(c(object@.solve_state$ambiguous_subjects[[curr_genotype_group]], tied_permutations[curr_genotype_group]))
+                    }
+                }
+            }
+        }
         
         new_putative_subjects <- best_permutation %>% 
             t() %>% 

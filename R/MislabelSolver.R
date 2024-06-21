@@ -1,4 +1,5 @@
 ## TODOs
+## Output which part of solver (comprehensive or majority or ensemble) was able to solve each component on the first path
 ## If given a genotype_matrix, plot the graph derived directly from the matrix rather than the factor
 ## Make the colors used in plotting global variables
 ## In comprehensive search, handle the case where there are more genotype groups than subjects
@@ -10,14 +11,18 @@
 #' 
 #' @slot sample_metadata A data.frame containing sample metadata, with one row per sample
 #'                       Must include columns for Sample_ID, Subject_ID. If 'genotype_matrix'
-#'                       is not provided, most also include a Genotype_Group_ID column.
+#'                       is not provided, most also include a Genotype_Group_ID column. Any
+#'                       Sample_ID(s) with NA in the Genotype_Group_ID column will be 
+#'                       tagged as phantom samples.
 #' @slot genotype_matrix (Optional) A numeric or logical matrix specifiying whether a pair of
 #'                       samples came from the same person. Row and column names must come from
-#'                       Sample_ID column in 'sample_metadata'. Must be square, must be symmetric 
-#' @slot swap_cats (Optional) A data.frame with one row per sample specifying the SwapCat_ID,
-#'                 where by experimental design only samples with the same SwapCat_ID may be 
+#'                       Sample_ID column in 'sample_metadata'. Must be square, must be symmetric.
+#'                       Any Sample_ID(s) that don't have row/columns in this matrix will be
+#'                       tagged as phantom samples.
+#' @slot swap_cats (Optional) A data.frame with one row per sample specifying the Mislabel_Constraint_Category,
+#'                 where by experimental design only samples in the same Mislabel_Constraint_Category may be 
 #'                 swapped for one another. For example, assay type or batch ID information 
-#'                 can be used to categorize Sample_ID(s) into SwapCat_ID(s)
+#'                 can be used to categorize Sample_ID(s) into Mislabel_Constraint_Category(s)
 #' @slot anchor_samples (Optional) A character vector of Sample_ID(s) where the label is known to be correct
 #' @slot .solve_state A purely internal slot, used to keep track of sample relabels
 #' 

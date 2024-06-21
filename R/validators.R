@@ -1,7 +1,6 @@
 #' @importFrom assertthat assert_that
 #' 
 .validate_sample_metadata <- function(sample_metadata, has_genotype_matrix=FALSE) {
-    print(has_genotype_matrix)
     required_columns <- c("Sample_ID", "Subject_ID")
     if (!has_genotype_matrix) {
         required_columns <- c(required_columns, "Genotype_Group_ID")

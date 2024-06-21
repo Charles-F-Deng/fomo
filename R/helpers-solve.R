@@ -46,7 +46,7 @@
         dplyr::arrange(Solved, dplyr::desc(n_Sample_ID)) %>% 
         dplyr::mutate(
             new_Component_ID = if (n_components != 0) seq_len(n_components) else character(0),
-            new_Component_ID = paste0("Component", formatC(new_Component_ID, width=nchar(n_components), format="d", flag="0"))
+            new_Component_ID = paste0("Component_", formatC(new_Component_ID, width=nchar(n_components), format="d", flag="0"))
         )
     unsolved_relabel_data <- unsolved_relabel_data %>% 
         dplyr::left_join(component_data[, c("Component_ID", "new_Component_ID")], by="Component_ID") %>% 
@@ -174,7 +174,6 @@
     
     all_data <- relabel_data
     
-    ghost_samples <- character(0)
     if (!is.null(ghost_data)) {
         if (collapse_samples) {
             ghost_data <- ghost_data %>% 
@@ -242,7 +241,7 @@
         dplyr::filter(stringr::str_detect(Sample_ID, LABEL_NOT_FOUND)) %>% 
         dplyr::pull(Sample_ID)
     label_not_found_samples <- intersect(label_not_found_samples, igraph::V(graph)$name)
-    # ghost_samples <- ghost_data %>% dplyr::pull(Sample_ID)
+    ghost_samples <- ghost_data %>% dplyr::pull(Sample_ID)
     ghost_samples <- intersect(ghost_samples, igraph::V(graph)$name)
     igraph::V(graph)$color <- "orange"
     igraph::V(graph)[anchor_samples]$color <- "forestgreen"

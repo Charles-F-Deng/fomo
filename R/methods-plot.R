@@ -92,18 +92,37 @@ plotCorrections <- function(object,
                             query_by=c("Init_Component_ID", "Component_ID", "Subject_ID", "Genotype_Group_ID", "Sample_ID"),
                             query_val=NULL) {
     relabel_data <- object@.solve_state$relabel_data
-    corrections_graph <- .generate_corrections_graph(relabel_data)
     
     ## If a query has been passed in, plot only the applicable components in the corrections graph
-    
-    
     if (!is.null(query_val)) {
         query_by <- as.character(query_by)
         query_by <- match.arg(query_by)
         if (query_by %in% c("Init_Component_ID", "Component_ID")) {
             relabel_data <- relabel_data %>% 
                 dplyr::filter(!!sym(query_by) == query_val)
+        } else {
+            component_id <- relabel_data %>% 
+                dplyr::filter(!!sym(query_by) == query_val) %>% 
+                dplyr::pull(Init_Component_ID) %>% 
+                unique()
+            if (length(component_id) == 0) {
+                warning(paste("No samples found for 'query_by'", paste0("'", query_by, "'"), "and 'query_val'", paste0("'", query_val, "'")))
+                return()
+            }
+            relabel_data <- relabel_data %>% 
+                filter(Init_Component_ID == component_id)
         }
-        init_query_val
     }
+    
+    corrections_graph <- .generate_corrections_graph(relabel_data)
+    
+    withr::with_seed(2, {
+        l_mds <- igraph::layout_with_mds(corrections_graph)
+        l_drl <- igraph::layout_with_drl(corrections_graph, use.seed=TRUE, seed=l_mds)
+        visNetwork::visIgraph(corrections_graph, layout = "layout_with_graphopt", start=l_drl) 
+    })
 }
+
+
+
+
