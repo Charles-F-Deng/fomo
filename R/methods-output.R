@@ -245,13 +245,15 @@ writeOutput <- function(object, dir_path=NULL) {
             n_Samples_singleton_no_inference = sum(Selected_For_Review == "singleton_no_inference"),
             n_Samples_not_relabeled_low_confidence = sum(Selected_For_Review == "not_relabeled_low_confidence")
         )
-
-    excel_filename <- file.path(dir_path, "corrections_summary.xlsx")
+    
     summary_list <- list(
         "Sample" = sample_summary,
         "Genotype_Group" = genotype_group_summary,
         "Component" = component_summary,
         "Dataset" = dataset_summary)
+    return(summary_list)
+    
+    excel_filename <- file.path(dir_path, "corrections_summary.xlsx")
     openxlsx::write.xlsx(summary_list, file=excel_filename)
     print(paste0("Output successfully written to ", excel_filename))
 }
