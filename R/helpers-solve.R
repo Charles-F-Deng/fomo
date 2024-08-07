@@ -135,7 +135,8 @@
 .generate_graph <- function(
         relabel_data, 
         graph_type=c("label", "genotype", "combined"), 
-        ghost_data=NULL, 
+        ghost_data=NULL,
+        genotype_matrix=NULL,
         populate_plotting_attributes=FALSE,
         collapse_samples=FALSE
 ) {
@@ -192,7 +193,7 @@
     }
     
     if (graph_type == "combined") {
-        genotype_graph <- .generate_graph(relabel_data, "genotype")
+        genotype_graph <- .generate_graph(relabel_data, "genotype", genotype_matrix=genotype_matrix)
         igraph::E(genotype_graph)$genotypes <- TRUE
         label_graph <- .generate_graph(relabel_data, "label", ghost_data)
         igraph::E(label_graph)$labels <- TRUE 
@@ -201,23 +202,28 @@
         igraph::E(graph)[is.na(igraph::E(graph)$labels)]$labels <- FALSE
         igraph::E(graph)$concordant <- igraph::E(graph)$genotypes & igraph::E(graph)$labels
     } else {
-        group_col <- graph_type_mapping[[graph_type]]
-        edges <- all_data %>%
-            dplyr::group_by_at(group_col) %>%
-            dplyr::mutate(
-                sample_a = Sample_ID,
-                sample_b = list(Sample_ID)
-            ) %>%
-            dplyr::ungroup() %>% 
-            tidyr::unnest(sample_b) %>%
-            dplyr::transmute(
-                sample1 = pmin(sample_a, sample_b),
-                sample2 = pmax(sample_a, sample_b)
-            ) %>%
-            dplyr::filter(sample1 != sample2) %>%
-            dplyr::distinct()
-        vertices <- all_data[, "Sample_ID", drop=FALSE]
-        graph <- igraph::graph_from_data_frame(edges, vertices=vertices, directed=FALSE)
+        if (graph_type == "genotype" & !is.null(genotype_matrix)) {
+            vertices <- all_data[, "Sample_ID", drop=FALSE]
+            graph <- igraph::graph_from_adjacency_matrix(genotype_matrix, mode="undirected")
+        } else {
+            group_col <- graph_type_mapping[[graph_type]]
+            edges <- all_data %>%
+                dplyr::group_by_at(group_col) %>%
+                dplyr::mutate(
+                    sample_a = Sample_ID,
+                    sample_b = list(Sample_ID)
+                ) %>%
+                dplyr::ungroup() %>% 
+                tidyr::unnest(sample_b) %>%
+                dplyr::transmute(
+                    sample1 = pmin(sample_a, sample_b),
+                    sample2 = pmax(sample_a, sample_b)
+                ) %>%
+                dplyr::filter(sample1 != sample2) %>%
+                dplyr::distinct()
+            vertices <- all_data[, "Sample_ID", drop=FALSE]
+            graph <- igraph::graph_from_data_frame(edges, vertices=vertices, directed=FALSE)
+        }
     }
     
     if (!populate_plotting_attributes) {return(graph)}
@@ -241,8 +247,11 @@
         dplyr::filter(stringr::str_detect(Sample_ID, LABEL_NOT_FOUND)) %>% 
         dplyr::pull(Sample_ID)
     label_not_found_samples <- intersect(label_not_found_samples, igraph::V(graph)$name)
-    ghost_samples <- ghost_data %>% dplyr::pull(Sample_ID)
-    ghost_samples <- intersect(ghost_samples, igraph::V(graph)$name)
+    ghost_samples <- NULL
+    if (!is.null(ghost_data)) {
+        ghost_samples <- ghost_data %>% dplyr::pull(Sample_ID)
+        ghost_samples <- intersect(ghost_samples, igraph::V(graph)$name)
+    }
     igraph::V(graph)$color <- "orange"
     igraph::V(graph)[anchor_samples]$color <- "forestgreen"
     igraph::V(graph)[label_not_found_samples]$color <- "firebrick"

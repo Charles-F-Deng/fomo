@@ -117,6 +117,9 @@ writeOutput <- function(object, dir_path=NULL) {
             !is.na(All_Valid_Subject_IDs) > 0 ~ "multiple_valid_subjects",
             !is.na(All_Valid_Sample_IDs) > 0 ~ "one_valid_subject_multiple_valid_samples"))
     
+    sample_summary$Sample_Contamination_Metric_Numerator <- NA_integer_
+    sample_summary$Sample_Contamination_Metric_Denominator <- NA_integer_
+    sample_summary$Sample_Contamination_Metric <- NA
     if (!is.null(object@genotype_matrix)) {
         sample_summary$Sample_Contamination_Metric_Numerator <- NA_integer_
         sample_summary$Sample_Contamination_Metric_Denominator <- NA_integer_
@@ -186,6 +189,9 @@ writeOutput <- function(object, dir_path=NULL) {
         dplyr::ungroup() %>%
         dplyr::select(Genotype_Group_ID, n_Samples_total, Inferred_Subject_ID, Selected_For_Review, n_Samples_Initially_Matching_Inferred_Subject, everything())
     
+    genotype_group_summary$Genotype_Contamination_Metric <- NA
+    genotype_group_summary$Genotype_Contamination_Metric_Denominator <- NA_integer_
+    genotype_group_summary$Genotype_Contamination_Metric_Numerator <- NA_integer_
     if (!is.null(object@genotype_matrix)) {
         genotype_group_summary$Genotype_Contamination_Metric <- NA
         genotype_group_summary$Genotype_Contamination_Metric_Denominator <- NA_integer_

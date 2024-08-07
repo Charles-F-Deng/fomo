@@ -65,7 +65,7 @@ setMethod("plot", signature(x = "MislabelSolver"),
                           dplyr::filter(Component_ID == component_id)
                   }
               }
-              graph <- .generate_graph(relabel_data, graph_type = "combined", ghost_data, 
+              graph <- .generate_graph(relabel_data, graph_type = "combined", ghost_data, genotype_matrix=x@genotype_matrix,
                                        populate_plotting_attributes=TRUE, collapse_samples=collapse_samples)
               withr::with_seed(2, {
                   l_mds <- igraph::layout_with_mds(graph)
